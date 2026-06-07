@@ -4,6 +4,9 @@ from pathlib import Path
 from datetime import timedelta
 from dotenv import load_dotenv
 
+# Load environment variables (ensure .env exists on the server or vars are set in the dashboard)
+# In PythonAnywhere, you usually set these in the WSGI file or the "Environment variables" section,
+# but loading .env is good for consistency if you use it there.
 load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -13,12 +16,19 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-t_u80fh0gsq)6(*@t33k&9+h*n=wg&e^xtikpcs4-(4k+q$tub'
+# CRITICAL: On PythonAnywhere, generate a new random key and set it in your .env or environment variables.
+SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'django-insecure-t_u80fh0gsq)6(*@t33k&9+h*n=wg&e^xtikpcs4-(4k+q$tub')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False 
 
-ALLOWED_HOSTS = ['*']
+# PythonAnywhere specific allowed hosts
+ALLOWED_HOSTS = [
+    'submitit.pythonanywhere.com', 
+    'www.submitit.pythonanywhere.com',
+    'localhost',
+    '127.0.0.1'
+]
 
 
 # Application definition
@@ -81,18 +91,11 @@ WSGI_APPLICATION = 'Submit_it.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
+# Note: SQLite works fine on PythonAnywhere for small to medium apps.
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
-    }
-}
-
-# Caching - Database Backend for Persistence
-CACHES = {
-    'default': {
-        'BACKEND': 'django.core.cache.backends.db.DatabaseCache',
-        'LOCATION': 'my_cache_table',
     }
 }
 
@@ -131,11 +134,21 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
-STATIC_URL = 'static/'
+# On PythonAnywhere, you must set up the Static Files mapping in the "Web" tab.
+# URL: /static/ -> Directory: /home/submitit/SUBMIT_IT_BACKEND/staticfiles
+STATIC_URL = '/static/'
+STATIC_ROOT = BASE_DIR / "staticfiles"
+
 STATICFILES_DIRS = [
     BASE_DIR / "static",
 ]
-STATIC_ROOT = BASE_DIR / "staticfiles"
+
+# Media files (User uploads)
+# On PythonAnywhere, add another mapping in the "Web" tab.
+# URL: /media/ -> Directory: /home/submitit/SUBMIT_IT_BACKEND/media
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / "media"
+
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
@@ -174,19 +187,27 @@ SIMPLE_JWT = {
 
 OTP_EXPIRATION_MINUTES = 10
 
-# Email Configuration (Console for development)
-# EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-# For production, uncomment and set env vars:
+# Email Configuration
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
+# Ensure these are set in your PythonAnywhere environment variables or .env file
 EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
 DEFAULT_FROM_EMAIL = f"Submit_it <{os.getenv('EMAIL_HOST_USER', 'noreply@submitit.com')}>"
 
 # CORS
-CORS_ALLOW_ALL_ORIGINS = True
+# For production, it is safer to specify exact origins rather than allow all.
+# Update this list with your frontend domain(s).
+CORS_ALLOWED_ORIGINS = [
+    "https://submitit.pythonanywhere.com",
+    # Add your frontend domain here, e.g.:
+    # "https://my-frontend-app.vercel.app",
+]
+# Fallback if you want to allow all (not recommended for strict production but useful for testing)
+CORS_ALLOW_ALL_ORIGINS = True 
+# CORS_ALLOW_CREDENTIALS = True # Uncomment if using cookies/sessions with cross-origin requests
 
 UNFOLD = {
     "SITE_TITLE": "Submit it Admin",
@@ -197,3 +218,9 @@ UNFOLD = {
 }
 
 DAILY_SUBMISSION_LIMIT = 3
+
+# Security Settings for Production (HTTPS)
+# Uncomment these once you have HTTPS set up (PythonAnywhere provides this by default)
+SECURE_SSL_REDIRECT = True
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True

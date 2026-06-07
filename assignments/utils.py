@@ -137,7 +137,8 @@ def extract_with_diagram_text(pdf_path):
                     
                     # Clean up and format the result for the AI
                     if ocr_result:
-                        formatted_ocr = f"\n> **[Extracted from Image]:** {ocr_result.replace('\n', ' ')}\n"
+                        clean_ocr = ocr_result.replace('\n', ' ')
+                        formatted_ocr = f"\n> **[Extracted from Image]:** {clean_ocr}\n"
                     else:
                         formatted_ocr = "\n> *[Image contains no readable text]*\n"
                     
